@@ -1130,9 +1130,9 @@ function renderHistory() {
         ${effects.length ? `<div class="entry-effects">${effects.map(s => `<span class="entry-effect-chip">${s}</span>`).join('')}</div>` : ''}
         ${e.suicidal_thoughts ? '<span class="entry-flag">⚠ SI</span>' : ''}
         ${e.self_harm ? '<span class="entry-flag">⚠ SH</span>' : ''}
-        ${e.panic_attack ? '<span class="entry-flag">⚠ Panic</span>' : ''}
+        ${e.panic_attack ? '<span class="entry-flag">⚠ panic</span>' : ''}
         ${e.notes ? `<div class="entry-notes">"${e.notes}"</div>` : ''}
-        <button class="delete-btn" onclick="deleteEntry('${e.id}')">Delete</button>
+        <button class="delete-btn" onclick="deleteEntry('${e.id}')">delete</button>
       </div>
     `;
   }).join('');
@@ -1145,11 +1145,11 @@ async function deleteEntry(id) {
   if (pendingDeleteId !== id) {
     pendingDeleteId = id;
     const btn = document.querySelector(`[onclick="deleteEntry('${id}')"]`);
-    if (btn) { btn.textContent = 'Tap again to delete'; btn.style.fontWeight = '600'; }
+    if (btn) { btn.textContent = 'tap again to delete'; btn.style.fontWeight = '600'; }
     clearTimeout(pendingDeleteTimer);
     pendingDeleteTimer = setTimeout(() => {
       pendingDeleteId = null;
-      if (btn) { btn.textContent = 'Delete'; btn.style.fontWeight = ''; }
+      if (btn) { btn.textContent = 'delete'; btn.style.fontWeight = ''; }
     }, 3000);
     return;
   }
@@ -1157,10 +1157,10 @@ async function deleteEntry(id) {
   clearTimeout(pendingDeleteTimer);
   try {
     await sbFetch(`entries?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
-    showToast('Deleted');
+    showToast('deleted');
     loadHistory();
   } catch (e) {
-    showToast('Failed to delete', true);
+    showToast('failed to delete', true);
   }
 }
 
