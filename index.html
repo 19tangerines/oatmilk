@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>oatmilk</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --surface: #faf8f4;
+    --surface2: #edeae2;
+    --border: #d6d1c7;
+    --text: #2c2c2e;
+    --text2: #8a8680;
+    --accent: #5a8ab5;
+    --accent2: #74a0c7;
+    --danger: #c76b6b;
+    --danger-bg: #f5e6e6;
+    --danger-border: #e0c0c0;
+    --success: #5a9e6f;
+    --success-bg: #e6f2ea;
+    --success-border: #b8d9c2;
+    --warning: #c9a84c;
+    --chart-mood: #5a8ab5;
+    --chart-anxiety: #c9a84c;
+    --chart-energy: #5a9e6f;
+    --chart-grid: #d6d1c7;
+    --chart-label: #8a8680;
+    --chart-legend-text: #2c2c2e;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1117;
+      --surface: #111a24;
+      --surface2: #182430;
+      --border: #243342;
+      --text: #dfe4ea;
+      --text2: #7a8fa3;
+      --accent: #4f8fcc;
+      --accent2: #6ba3d9;
+      --danger: #d47070;
+      --danger-bg: #1e1416;
+      --danger-border: #3a2428;
+      --success: #5cb87a;
+      --success-bg: #121e16;
+      --success-border: #1e3a26;
+      --warning: #d4b85c;
+      --chart-mood: #4f8fcc;
+      --chart-anxiety: #d4b85c;
+      --chart-energy: #5cb87a;
+      --chart-grid: #243342;
+      --chart-label: #7a8fa3;
+      --chart-legend-text: #dfe4ea;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    padding-bottom: 100px;
+  }
+
+  /* PIN Screen */
+  #pin-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: 20px;
+  }
+
+  #pin-screen h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  #pin-screen p {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .pin-dot.error {
+    border-color: var(--danger);
+    background: var(--danger);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    gap: 12px;
+  }
+
+  .pin-btn {
+    height: 72px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pin-btn:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    transform: scale(0.95);
+  }
+
+  .pin-btn.empty {
+    visibility: hidden;
+  }
+
+  .pin-btn.backspace {
+    font-size: 18px;
+    border: none;
+    background: transparent;
+    visibility: visible;
+  }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav button {
+    flex: 1;
+    padding: 12px 0;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav button.active {
+    color: var(--accent);
+  }
+
+  .nav button svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* App header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .header .date {
+    color: var(--text2);
+    font-size: 13px;
+  }
+
+  /* Form */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .card-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  /* Checkbox */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .checkbox-row + .si-notice + .checkbox-row,
+  .checkbox-row + .checkbox-row {
+    margin-top: 10px;
+  }
+
+  .checkbox-row span {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .checkbox-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .checkbox-box svg {
+    width: 14px;
+    height: 14px;
+    stroke: white;
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .checkbox-row.checked .checkbox-box {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox-row.checked .checkbox-box svg {
+    opacity: 1;
+  }
+
+  .checkbox-row.danger span {
+    color: var(--danger);
+  }
+
+  .checkbox-row.danger.checked .checkbox-box {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .si-notice {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    font-size: 13px;
+    color: var(--danger);
+    line-height: 1.5;
+    display: none;
+  }
+
+  .si-notice.show {
+    display: block;
+  }
+
+  .si-notice a {
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  /* Slider */
+  .slider-group {
+    margin-bottom: 18px;
+  }
+
+  .slider-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .slider-header span {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .slider-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+  }
+
+  /* Side effects chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* Textarea */
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 12px;
+    resize: vertical;
+    outline: none;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+  }
+
+  textarea::placeholder {
+    color: var(--text2);
+  }
+
+  /* Dosage input */
+  .dosage-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dosage-input input {
+    width: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 12px;
+    outline: none;
+    text-align: center;
+  }
+
+  .dosage-input input:focus {
+    border-color: var(--accent);
+  }
+
+  .dosage-input span {
+    color: var(--text2);
+    font-size: 14px;
+  }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 6px;
+  }
+
+  .submit-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 200;
+    transition: transform 0.3s ease;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast.error {
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger);
+  }
+
+  /* Dashboard */
+  #dashboard {
+    display: none;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-card .label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Chart */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .chart-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .chart-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .chart-container canvas {
+    width: 100% !important;
+    height: 200px !important;
+  }
+
+  .side-effects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .se-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .se-item:last-child {
+    border-bottom: none;
+  }
+
+  .se-item .name {
+    font-size: 14px;
+  }
+
+  .se-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .se-bar {
+    width: 80px;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .se-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  .se-count {
+    font-size: 12px;
+    color: var(--text2);
+    min-width: 20px;
+    text-align: right;
+  }
+
+  /* History */
+  #history {
+    display: none;
+  }
+
+  .entry-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  .entry-date {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .entry-metrics {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .entry-metric {
+    font-size: 13px;
+  }
+
+  .entry-metric strong {
+    color: var(--accent);
+  }
+
+  .entry-took {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .entry-took.yes {
+    background: var(--success-bg);
+    color: var(--success);
+  }
+
+  .entry-took.no {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
+  .entry-effects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .entry-effect-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--text2);
+  }
+
+  .entry-notes {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text2);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  .entry-flag {
+    display: inline-block;
+    margin-top: 6px;
+    margin-right: 4px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text2);
+  }
+
+  .empty-state p {
+    font-size: 14px;
+  }
+
+  /* Time selector */
+  .time-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .time-tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .time-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-top: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- PIN Screen -->
+<div id="pin-screen">
+  <h1>oatmilk</h1>
+  <p>Enter your PIN</p>
+  <div class="pin-dots" id="pin-dots"></div>
+  <div class="pin-pad" id="pin-pad"></div>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none;">
+
+  <!-- Log Entry -->
+  <div id="log-entry" class="container">
+    <div class="header">
+      <div>
+        <h1>oatmilk</h1>
+        <div class="date" id="today-date"></div>
+      </div>
+      <div class="dosage-input">
+        <input type="number" id="dosage" value="10" min="2.5" max="20" step="2.5">
+        <span>mg</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="checkbox-row" id="took-med" onclick="toggleCheckbox('took-med')">
+        <div class="checkbox-box"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg></div>
+        <span>took medication today</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">how are you feeling?</div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>mood</span>
+          <span class="slider-value" id="mood-val">5</span>
+        </div>
+        <input type="range" id="mood" min="1" max="10" value="5" oninput="document.getElementById('mood-val').textContent=this.value">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>anxiety</span>
+          <span class="slider-value" id="anxiety-val">5</span>
+        </div>
+        <input type="range" id="anxiety" min="1" max="10" value="5" oninput="document.getElementById('anxiety-val').textContent=this.value">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>energy</span>
+          <span class="slider-value" id="energy-val">5</span>
+        </div>
+        <input type="range" id="energy" min="1" max="10" value="5" oninput="document.getElementById('energy-val').textContent=this.value">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>sleep</span>
+          <span class="slider-value" id="sleep-val">5</span>
+        </div>
+        <input type="range" id="sleep" min="1" max="10" value="5" oninput="document.getElementById('sleep-val').textContent=this.value">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Side Effects</div>
+      <div class="chips" id="side-effects">
+        <div class="chip" onclick="toggleChip(this)">nausea</div>
+        <div class="chip" onclick="toggleChip(this)">fatigue</div>
+        <div class="chip" onclick="toggleChip(this)">dizziness</div>
+        <div class="chip" onclick="toggleChip(this)">insomnia</div>
+        <div class="chip" onclick="toggleChip(this)">headache</div>
+        <div class="chip" onclick="toggleChip(this)">dry mouth</div>
+        <div class="chip" onclick="toggleChip(this)">sweating</div>
+        <div class="chip" onclick="toggleChip(this)">ate too much</div>
+        <div class="chip" onclick="toggleChip(this)">ate too little</div>
+        <div class="chip" onclick="toggleChip(this)">low libido</div>
+        <div class="chip" onclick="toggleChip(this)">tremor</div>
+        <div class="chip" onclick="toggleChip(this)">diarrhea</div>
+        <div class="chip" onclick="toggleChip(this)">increased anxiety</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="checkbox-row danger" id="si-check" onclick="toggleCheckbox('si-check')">
+        <div class="checkbox-box"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg></div>
+        <span>suicidal thoughts</span>
+      </div>
+      <div class="si-notice" id="si-notice">
+        If you're in crisis, please reach out:<br>
+        <a href="tel:988">988 Suicide & Crisis Lifeline</a> (call or text 988)<br>
+        <a href="sms:741741&body=HELLO">Crisis Text Line</a> (text HELLO to 741741)
+      </div>
+      <div class="checkbox-row danger" id="sh-check" onclick="toggleCheckbox('sh-check')">
+        <div class="checkbox-box"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg></div>
+        <span>self harm</span>
+      </div>
+      <div class="checkbox-row danger" id="panic-check" onclick="toggleCheckbox('panic-check')">
+        <div class="checkbox-box"><svg viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg></div>
+        <span>panic attack</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Notes</div>
+      <textarea id="notes" placeholder="anything else to note?"></textarea>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitEntry()">log entry</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="container">
+    <div class="header">
+      <h1>trends</h1>
+    </div>
+
+    <div class="time-tabs" id="time-tabs">
+      <div class="time-tab active" onclick="setTimeRange(7, this)">7d</div>
+      <div class="time-tab" onclick="setTimeRange(14, this)">14d</div>
+      <div class="time-tab" onclick="setTimeRange(30, this)">30d</div>
+      <div class="time-tab" onclick="setTimeRange(0, this)">all</div>
+    </div>
+
+    <div id="stats-row" class="stat-row"></div>
+
+    <div class="chart-card">
+      <h3>Mood &middot; Anxiety &middot; Energy &middot; Sleep</h3>
+      <div class="chart-container">
+        <canvas id="chart-feelings"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Side Effects Frequency</h3>
+      <div id="se-freq" class="side-effects-list"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="history" class="container">
+    <div class="header">
+      <h1>history</h1>
+    </div>
+    <div id="entries-list"></div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="active" onclick="showTab('log-entry', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      log
+    </button>
+    <button onclick="showTab('dashboard', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+      trends
+    </button>
+    <button onclick="showTab('history', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      history
+    </button>
+  </div>
+</div>
+
+<script>
+// ============ CONFIG ============
+const PIN_HASH = 'e24fc0f9f7986203abe9f3091c36769afc59e2db794bd0558f32c255c79f35ef';
+const SUPABASE_URL = 'https://ljhishmbyheylthlsljd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqaGlzaG1ieWhleWx0aGxzbGpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwNjg2MjAsImV4cCI6MjEwMTY0NDYyMH0.mOUb4GI2ex5WPqJXzZJ7z0cua69Dk6FVXXDPHQlqZDs';
+
+// ============ PIN ============
+let pinInput = '';
+
+function initPinPad() {
+  const dots = document.getElementById('pin-dots');
+  for (let i = 0; i < 6; i++) {
+    const d = document.createElement('div');
+    d.className = 'pin-dot';
+    dots.appendChild(d);
+  }
+
+  const pad = document.getElementById('pin-pad');
+  const keys = [1,2,3,4,5,6,7,8,9,'',0,'←'];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'pin-btn';
+    if (k === '') btn.className += ' empty';
+    if (k === '←') btn.className += ' backspace';
+    btn.textContent = k;
+    btn.onclick = () => handlePinKey(k);
+    pad.appendChild(btn);
+  });
+}
+
+async function handlePinKey(key) {
+  if (key === '') return;
+  if (key === '←') {
+    pinInput = pinInput.slice(0, -1);
+    updatePinDots();
+    return;
+  }
+  if (pinInput.length >= 6) return;
+  pinInput += key;
+  updatePinDots();
+
+  if (pinInput.length === 6) {
+    const hash = await sha256(pinInput);
+    if (hash === PIN_HASH) {
+      localStorage.setItem('lex_auth', 'true');
+      showApp();
+    } else {
+      const dots = document.querySelectorAll('.pin-dot');
+      dots.forEach(d => d.classList.add('error'));
+      setTimeout(() => {
+        pinInput = '';
+        dots.forEach(d => { d.classList.remove('error', 'filled'); });
+      }, 500);
+    }
+  }
+}
+
+function updatePinDots() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('filled', i < pinInput.length);
+  });
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ============ APP ============
+function showApp() {
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('today-date').textContent = new Date()
+    .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  loadHistory();
+}
+
+// ============ FORM ============
+function toggleCheckbox(id) {
+  const row = document.getElementById(id);
+  row.classList.toggle('checked');
+  if (id === 'si-check') {
+    document.getElementById('si-notice').classList.toggle('show', row.classList.contains('checked'));
+  }
+}
+
+function isChecked(id) {
+  return document.getElementById(id).classList.contains('checked');
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedEffects() {
+  return Array.from(document.querySelectorAll('#side-effects .chip.selected'))
+    .map(c => c.textContent);
+}
+
+// ============ SUPABASE ============
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers,
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function submitEntry() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const entry = {
+    entry_date: new Date().toISOString(),
+    took_med: isChecked('took-med'),
+    dosage_mg: parseFloat(document.getElementById('dosage').value) || 10,
+    mood: parseInt(document.getElementById('mood').value),
+    anxiety: parseInt(document.getElementById('anxiety').value),
+    energy: parseInt(document.getElementById('energy').value),
+    sleep_quality: parseInt(document.getElementById('sleep').value),
+    side_effects: getSelectedEffects(),
+    suicidal_thoughts: isChecked('si-check'),
+    self_harm: isChecked('sh-check'),
+    panic_attack: isChecked('panic-check'),
+    notes: document.getElementById('notes').value.trim() || null,
+  };
+
+  try {
+    await sbFetch('entries', {
+      method: 'POST',
+      body: entry,
+    });
+    showToast('Entry logged!');
+    resetForm();
+    loadHistory();
+  } catch (e) {
+    showToast('Failed to save. Check Supabase config.', true);
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Log Entry';
+}
+
+function resetForm() {
+  document.getElementById('took-med').classList.remove('checked');
+  document.getElementById('si-check').classList.remove('checked');
+  document.getElementById('sh-check').classList.remove('checked');
+  document.getElementById('panic-check').classList.remove('checked');
+  document.getElementById('si-notice').classList.remove('show');
+  document.getElementById('mood').value = 5;
+  document.getElementById('mood-val').textContent = '5';
+  document.getElementById('anxiety').value = 5;
+  document.getElementById('anxiety-val').textContent = '5';
+  document.getElementById('energy').value = 5;
+  document.getElementById('energy-val').textContent = '5';
+  document.getElementById('sleep').value = 5;
+  document.getElementById('sleep-val').textContent = '5';
+  document.getElementById('notes').value = '';
+  document.querySelectorAll('#side-effects .chip').forEach(c => c.classList.remove('selected'));
+}
+
+// ============ DATA ============
+let allEntries = [];
+let timeRange = 7;
+
+async function loadHistory() {
+  try {
+    allEntries = await sbFetch('entries?order=entry_date.desc');
+    renderHistory();
+    renderDashboard();
+  } catch (e) {
+    console.error('Failed to load entries:', e);
+  }
+}
+
+function renderHistory() {
+  const list = document.getElementById('entries-list');
+  if (!allEntries.length) {
+    list.innerHTML = '<div class="empty-state"><p>No entries yet.<br>Log your first entry!</p></div>';
+    return;
+  }
+
+  list.innerHTML = allEntries.map(e => {
+    const d = new Date(e.entry_date);
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const effects = (e.side_effects || []);
+
+    return `
+      <div class="entry-item">
+        <div class="entry-date">${dateStr} &middot; ${timeStr}</div>
+        <span class="entry-took ${e.took_med ? 'yes' : 'no'}">${e.took_med ? '✓ Took ' + (e.dosage_mg||10) + 'mg' : '✗ Missed'}</span>
+        <div class="entry-metrics">
+          <span class="entry-metric">mood <strong>${e.mood}</strong></span>
+          <span class="entry-metric">anxiety <strong>${e.anxiety}</strong></span>
+          <span class="entry-metric">energy <strong>${e.energy}</strong></span>
+          <span class="entry-metric">sleep <strong>${e.sleep_quality != null ? e.sleep_quality : '-'}</strong></span>
+        </div>
+        ${effects.length ? `<div class="entry-effects">${effects.map(s => `<span class="entry-effect-chip">${s}</span>`).join('')}</div>` : ''}
+        ${e.suicidal_thoughts ? '<span class="entry-flag">⚠ SI</span>' : ''}
+        ${e.self_harm ? '<span class="entry-flag">⚠ SH</span>' : ''}
+        ${e.panic_attack ? '<span class="entry-flag">⚠ Panic</span>' : ''}
+        ${e.notes ? `<div class="entry-notes">"${e.notes}"</div>` : ''}
+        <button class="delete-btn" onclick="deleteEntry('${e.id}')">Delete</button>
+      </div>
+    `;
+  }).join('');
+}
+
+let pendingDeleteId = null;
+let pendingDeleteTimer = null;
+
+async function deleteEntry(id) {
+  if (pendingDeleteId !== id) {
+    pendingDeleteId = id;
+    const btn = document.querySelector(`[onclick="deleteEntry('${id}')"]`);
+    if (btn) { btn.textContent = 'Tap again to delete'; btn.style.fontWeight = '600'; }
+    clearTimeout(pendingDeleteTimer);
+    pendingDeleteTimer = setTimeout(() => {
+      pendingDeleteId = null;
+      if (btn) { btn.textContent = 'Delete'; btn.style.fontWeight = ''; }
+    }, 3000);
+    return;
+  }
+  pendingDeleteId = null;
+  clearTimeout(pendingDeleteTimer);
+  try {
+    await sbFetch(`entries?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+    showToast('Deleted');
+    loadHistory();
+  } catch (e) {
+    showToast('Failed to delete', true);
+  }
+}
+
+// ============ DASHBOARD ============
+function getFilteredEntries() {
+  if (timeRange === 0) return [...allEntries].reverse();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - timeRange);
+  return allEntries.filter(e => new Date(e.entry_date) >= cutoff).reverse();
+}
+
+function setTimeRange(days, el) {
+  timeRange = days;
+  document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const entries = getFilteredEntries();
+  if (!entries.length) {
+    document.getElementById('stats-row').innerHTML = '';
+    document.getElementById('se-freq').innerHTML = '<div class="empty-state"><p>No data yet</p></div>';
+    clearChart();
+    return;
+  }
+
+  const adherence = entries.filter(e => e.took_med).length;
+  const avgMood = (entries.reduce((s, e) => s + e.mood, 0) / entries.length).toFixed(1);
+  const avgAnxiety = (entries.reduce((s, e) => s + e.anxiety, 0) / entries.length).toFixed(1);
+  const avgEnergy = (entries.reduce((s, e) => s + e.energy, 0) / entries.length).toFixed(1);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="value">${adherence}/${entries.length}</div>
+      <div class="label">Adherence</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${avgMood}</div>
+      <div class="label">Avg Mood</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${avgAnxiety}</div>
+      <div class="label">Avg Anxiety</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">${avgEnergy}</div>
+      <div class="label">Avg Energy</div>
+    </div>
+  `;
+
+  renderChart(entries);
+  renderSideEffects(entries);
+}
+
+// ============ CHART (canvas) ============
+let chartInstance = null;
+
+function clearChart() {
+  const canvas = document.getElementById('chart-feelings');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getChartColors() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    mood: style.getPropertyValue('--chart-mood').trim(),
+    anxiety: style.getPropertyValue('--chart-anxiety').trim(),
+    energy: style.getPropertyValue('--chart-energy').trim(),
+    grid: style.getPropertyValue('--chart-grid').trim(),
+    label: style.getPropertyValue('--chart-label').trim(),
+    legendText: style.getPropertyValue('--chart-legend-text').trim(),
+  };
+}
+
+function renderChart(entries) {
+  const canvas = document.getElementById('chart-feelings');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const colors = getChartColors();
+
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '200px';
+  ctx.scale(dpr, dpr);
+
+  const w = rect.width;
+  const h = 200;
+  const pad = { top: 20, right: 12, bottom: 30, left: 30 };
+  const plotW = w - pad.left - pad.right;
+  const plotH = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const n = entries.length;
+  if (n < 2) {
+    ctx.fillStyle = colors.label;
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Need at least 2 entries for a chart', w/2, h/2);
+    return;
+  }
+
+  ctx.strokeStyle = colors.grid;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i += 2) {
+    const y = pad.top + plotH - (i / 10) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+
+    ctx.fillStyle = colors.label;
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(i, pad.left - 6, y + 3);
+  }
+
+  const series = [
+    { key: 'mood', color: colors.mood, label: 'Mood' },
+    { key: 'anxiety', color: colors.anxiety, label: 'Anxiety' },
+    { key: 'energy', color: colors.energy, label: 'Energy' },
+    { key: 'sleep_quality', color: '#b07acc', label: 'Sleep' },
+  ];
+
+  series.forEach(s => {
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    let started = false;
+    entries.forEach((e, i) => {
+      const val = e[s.key];
+      if (val == null) return;
+      const x = pad.left + (i / (n - 1)) * plotW;
+      const y = pad.top + plotH - (val / 10) * plotH;
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    entries.forEach((e, i) => {
+      const val = e[s.key];
+      if (val == null) return;
+      const x = pad.left + (i / (n - 1)) * plotW;
+      const y = pad.top + plotH - (val / 10) * plotH;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = s.color;
+      ctx.fill();
+    });
+  });
+
+  const step = Math.max(1, Math.floor(n / 6));
+  ctx.fillStyle = colors.label;
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  entries.forEach((e, i) => {
+    if (i % step === 0 || i === n - 1) {
+      const x = pad.left + (i / (n - 1)) * plotW;
+      const d = new Date(e.entry_date);
+      ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`, x, h - 8);
+    }
+  });
+
+  const legendY = 10;
+  let legendX = pad.left;
+  ctx.font = '11px -apple-system, sans-serif';
+  series.forEach(s => {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(legendX, legendY - 4, 8, 8);
+    ctx.fillStyle = colors.legendText;
+    ctx.textAlign = 'left';
+    ctx.fillText(s.label, legendX + 12, legendY + 4);
+    legendX += ctx.measureText(s.label).width + 26;
+  });
+}
+
+function renderSideEffects(entries) {
+  const counts = {};
+  entries.forEach(e => {
+    (e.side_effects || []).forEach(s => {
+      counts[s] = (counts[s] || 0) + 1;
+    });
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const container = document.getElementById('se-freq');
+
+  if (!sorted.length) {
+    container.innerHTML = '<div class="empty-state"><p>No side effects reported</p></div>';
+    return;
+  }
+
+  const max = sorted[0][1];
+  container.innerHTML = sorted.map(([name, count]) => `
+    <div class="se-item">
+      <span class="name">${name}</span>
+      <div class="se-bar-wrap">
+        <div class="se-bar">
+          <div class="se-bar-fill" style="width:${(count/max)*100}%"></div>
+        </div>
+        <span class="se-count">${count}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============ NAV ============
+function showTab(id, btn) {
+  ['log-entry', 'dashboard', 'history'].forEach(t => {
+    document.getElementById(t).style.display = t === id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (id === 'dashboard' || id === 'history') loadHistory();
+}
+
+// ============ TOAST ============
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============ INIT ============
+initPinPad();
+if (localStorage.getItem('lex_auth') === 'true') {
+  showApp();
+} else {
+  document.getElementById('pin-screen').style.display = 'flex';
+}
+</script>
+</body>
+</html>
